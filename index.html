@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuiz Pekerjaan</title>
+    <style>
+        body {
+            font-family: 'Roboto', cursive, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #ffcc00, #ff6699, #66ccff, #ffccff, #f4a460, #add8e6);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #004d40;
+            font-size: 3em;
+        }
+        .question {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s;
+        }
+        .question:hover {
+            transform: scale(1.02);
+        }
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 30px;
+            font-size: 16px;
+            background-color: #00796b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        button:hover {
+            background-color: #004d40;
+            transform: translateY(-2px);
+        }
+        label {
+            display: block;
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(178, 235, 242, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .job-card {
+            margin: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s;
+        }
+        .job-card:hover {
+            transform: scale(1.02);
+        }
+        .job-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #00796b;
+        }
+        .job-details {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        #progressBar {
+            margin: 20px;
+            height: 10px;
+            background-color: #00796b;
+            border-radius: 5px;
+            width: 0%;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>
+    <img src="semashur_logo.png" alt="Logo" style="height: 100px; vertical-align: middle; margin-right: 10px;">
+    Kuiz Pekerjaan Interaktif
+</h1>
+<div id="progressBar"></div>
+<div id="quiz"></div>
+<button id="nextButton">Seterusnya</button>
+<button id="resetButton" style="display:none;">Mulakan Semula</button>
+
+<audio id="selectionSound" src="selection.wav" preload="auto"></audio>
+<audio id="nextSound" src="next.wav" preload="auto"></audio>
+<audio id="nextButtonSound" src="next_button.wav" preload="auto"></audio> <!-- Next button sound -->
+<audio id="resetSound" src="reset.wav" preload="auto"></audio>
+<audio id="completeSound" src="complete.wav" preload="auto"></audio>
+
+<script>
+    const questions = [
+         {
+            question: "1. Apakah bidang yang paling menarik minat anda?",
+            options: ["Teknologi", "Perubatan", "Seni & Reka Bentuk", "Pendidikan"],
+            type: "field"
+        },
+        {
+            question: "2. Adakah anda lebih suka bekerja secara individu atau dalam kumpulan?",
+            options: ["Individu", "Kumpulan"],
+            type: "field"
+        },
+        {
+            question: "3. Bagaimana anda mengatasi masalah?",
+            options: ["Menganalisis data dan fakta", "Berfikir secara kreatif", "Bertanya kepada orang lain", "Mengikuti prosedur yang ada"],
+            type: "field"
+        },
+        {
+            question: "4. Apakah jenis persekitaran kerja yang anda suka?",
+            options: ["Pejabat yang teratur", "Persekitaran yang dinamik", "Lab atau ruang makmal", "Lokasi luar"],
+            type: "field"
+        },
+        {
+            question: "5. Adakah anda suka belajar tentang teknologi baru?",
+            options: ["Ya", "Tidak"],
+            type: "field"
+        },
+        {
+            question: "6. Sejauh manakah anda menyukai interaksi dengan orang lain?",
+            options: ["Sangat suka", "Suka", "Tidak begitu suka", "Langsung tidak suka"],
+            type: "field"
+        },
+        {
+            question: "7. Apakah subjek kegemaran anda di sekolah?",
+            options: ["Matematik", "Sains", "Seni", "Bahasa"],
+            type: "field"
+        },
+        {
+            question: "8. Adakah anda lebih suka mengurus projek atau melaksanakan tugas?",
+            options: ["Mengurus projek", "Melaksanakan tugas"],
+            type: "field"
+        },
+        {
+            question: "9. Apakah cara terbaik untuk anda menyelesaikan tugasan?",
+            options: ["Menggunakan pendekatan sistematik", "Menggunakan kreativiti", "Mendapatkan input dari rakan sekerja", "Mengikuti arahan dengan teliti"],
+            type: "field"
+        },
+        {
+            question: "10. Adakah anda berminat dalam penyelidikan dan analisis?",
+            options: ["Ya, sangat berminat", "Agak berminat", "Tidak begitu berminat", "Tidak berminat langsung"],
+            type: "field"
+        },
+        {
+            question: "11. Adakah anda selesa mengambil risiko dalam keputusan kerja?",
+            options: ["Sangat selesa", "Agak selesa", "Tidak begitu selesa", "Tidak selesa langsung"],
+            type: "field"
+        },
+        {
+            question: "12. Adakah anda lebih suka pekerjaan yang mempunyai struktur dan rutin?",
+            options: ["Ya", "Tidak"],
+            type: "field"
+        },
+        {
+            question: "13. Apakah peranan yang paling anda hargai dalam satu pasukan?",
+            options: ["Pemimpin", "Pengurus projek", "Penyelesai masalah", "Penyokong"],
+            type: "field"
+        },
+        {
+            question: "14. Adakah anda suka bekerja dengan angka dan data?",
+            options: ["Ya, sangat suka", "Agak suka", "Tidak begitu suka", "Tidak suka langsung"],
+            type: "field"
+        },
+        {
+            question: "15. Apakah matlamat kerjaya jangka panjang anda?",
+            options: ["Menjadi pakar dalam bidang tertentu", "Menaiki tangga kerjaya", "Memulakan perniagaan sendiri", "Menjadi pendidik atau mentor"],
+            type: "field"
+        }
+    ];
+
+    const jobDetails = {
+       "Pakar Data": {
+            universities: ["Universiti Malaya (Sains Data)", "Universiti Kebangsaan Malaysia (Sains Data)", "Stanford University (Data Science)", "University of California, Berkeley (Data Science)"],
+            salary: "RM 5,000 - RM 12,000",
+            qualifications: "Ijazah dalam Sains Data atau Statistik",
+            hollandCode: ["I"]
+        },
+        "Jurutera Perisian": {
+            universities: ["Universiti Malaya (Kejuruteraan Perisian)", "Universiti Teknologi Malaysia (Sains Komputer)", "MIT (Kejuruteraan Perisian)", "University of California, San Diego (Kejuruteraan Perisian)"],
+            salary: "RM 4,000 - RM 10,000",
+            qualifications: "Ijazah dalam Kejuruteraan Perisian",
+            hollandCode: ["I"]
+        },
+        "Penasihat Kewangan": {
+            universities: ["Universiti Malaya (Kewangan)", "Universiti Kebangsaan Malaysia (Perakaunan)", "University of Chicago (Kewangan)", "London School of Economics (Kewangan)"],
+            salary: "RM 4,500 - RM 10,000",
+            qualifications: "Ijazah dalam Kewangan atau Perakaunan",
+            hollandCode: ["E"]
+        },
+        "Ahli Biologi": {
+            universities: ["Universiti Sains Malaysia (Biologi)", "Universiti Malaya (Sains Hayat)", "Harvard University (Biologi)", "University of Cambridge (Biologi)"],
+            salary: "RM 3,500 - RM 8,000",
+            qualifications: "Ijazah dalam Biologi atau Sains Hayat",
+            hollandCode: ["I"]
+        },
+        "Pengurus Pemasaran": {
+            universities: ["Universiti Malaya (Pemasaran)", "Universiti Kebangsaan Malaysia (Pengurusan)", "University of Pennsylvania (Pemasaran)", "Northwestern University (Pemasaran)"],
+            salary: "RM 5,000 - RM 15,000",
+            qualifications: "Ijazah dalam Pemasaran atau Pengurusan",
+            hollandCode: ["E"]
+        },
+        "Pengurus Projek": {
+            universities: ["Universiti Malaya (Pengurusan Projek)", "Universiti Kebangsaan Malaysia (Pengurusan)", "University of Manchester (Pengurusan Projek)", "Harvard University (Pengurusan)"],
+            salary: "RM 6,000 - RM 14,000",
+            qualifications: "Ijazah dalam Pengurusan atau Kejuruteraan",
+            hollandCode: ["C"]
+        },
+        "Pereka Grafik": {
+            universities: ["Universiti Malaya (Reka Bentuk Grafik)", "Universiti Kebangsaan Malaysia (Seni Visual)", "Rhode Island School of Design (Reka Bentuk)", "California Institute of the Arts (Reka Bentuk)"],
+            salary: "RM 3,500 - RM 9,000",
+            qualifications: "Ijazah dalam Reka Bentuk Grafik",
+            hollandCode: ["A"]
+        },
+        "Doktor": {
+            universities: ["Universiti Malaya (Perubatan)", "Universiti Kebangsaan Malaysia (Perubatan)", "Harvard University (Perubatan)", "Johns Hopkins University (Perubatan)"],
+            salary: "RM 10,000 - RM 20,000",
+            qualifications: "Ijazah Perubatan",
+            hollandCode: ["S"]
+        },
+        "Ahli Psikologi": {
+            universities: ["Universiti Malaya (Psikologi)", "Universiti Kebangsaan Malaysia (Psikologi)", "Stanford University (Psikologi)", "University of Michigan (Psikologi)"],
+            salary: "RM 4,000 - RM 10,000",
+            qualifications: "Ijazah dalam Psikologi",
+            hollandCode: ["S"]
+        },
+        "Usahawan": {
+            universities: ["Universiti Malaya (Keusahawanan)", "Universiti Kebangsaan Malaysia (Pengurusan)", "Babson College (Keusahawanan)", "University of Pennsylvania (Keusahawanan)"],
+            salary: "RM 5,000 - RM 15,000",
+            qualifications: "Ijazah dalam Keusahawanan atau Pengurusan",
+            hollandCode: ["E"]
+        }
+    };
+
+    const hollandMapping = {
+        "Teknologi": ["I", "C"],
+        "Perubatan": ["S", "E"],
+        "Kreatif (Seni, Reka Bentuk)": ["A", "C"],
+        "Pendidikan": ["S", "E"],
+        "Kewangan": ["E", "C"],
+        "Membangunkan produk": ["I", "C"],
+        "Bekerja dengan orang": ["S", "E"],
+        "Merekabentuk": ["A", "C"],
+        "Mengajar": ["S", "E"],
+        "Menganalisis data": ["C", "I"],
+        "Bekerja dari rumah": ["I"],
+        "Persekitaran kreatif": ["A"],
+        "Organisasi besar": ["E"],
+        "Bekerja di luar": ["S"],
+        "Sijil": ["C"],
+        "Ijazah Sarjana Muda": ["S"],
+        "Ijazah Sarjana": ["E"],
+        "Doktor Falsafah (PhD)": ["A"],
+        "Gaji yang tinggi": ["E"],
+        "Kesempatan untuk membantu orang lain": ["S"],
+        "Peluang untuk belajar dan berkembang": ["I", "C"],
+        "Keseimbangan kerja-hidup": ["S"],
+        "Pengaturcaraan": ["I"],
+        "Reka bentuk visual": ["A"],
+        "Penyelidikan": ["C"],
+        "Pengurusan projek": ["E"],
+        "Sangat penting": ["I", "E"],
+        "Penting": ["S", "C"],
+        "Tidak penting": ["A"],
+        "Pemimpin": ["E"],
+        "Pekerja kumpulan": ["S"],
+        "Individu yang berdikari": ["I"],
+        "Cabaran teknikal": ["I"],
+        "Cabaran sosial": ["S"],
+        "Cabaran kreatif": ["A"],
+        "Cabaran analitis": ["C"],
+        "Sukan": ["E"],
+        "Seni": ["A"],
+        "Pengembaraan": ["I"],
+        "Baca": ["C"],
+        "Maklum balas positif": ["E"],
+        "Maklum balas membina": ["S"],
+        "Maklum balas langsung": ["I"],
+        "Sangat penting": ["E"],
+        "Penting": ["S"],
+        "Tidak penting": ["C"],
+        "Kepimpinan": ["E"],
+        "Keusahawanan": ["I"],
+        "Pakar dalam bidang": ["C"],
+        "Pendidikan": ["S"],
+        "Kecekapan komunikasi": ["E"],
+        "Kemahiran analitis": ["C"],
+        "Kemahiran pengurusan": ["E"],
+        "Kreativiti": ["A"],
+        "Kerja yang membosankan": ["I"],
+        "Kerja yang tidak memberi makna": ["S"],
+        "Kerja yang tidak memerlukan kreativiti": ["A"]
+    };
+
+    let currentQuestionIndex = 0;
+    const userResponses = [];
+
+    function showQuestion() {
+        const quizContainer = document.getElementById('quiz');
+        quizContainer.innerHTML = '';
+
+        const questionData = questions[currentQuestionIndex];
+        const questionElement = document.createElement('div');
+        questionElement.classList.add('question');
+        questionElement.innerHTML = `<p>${questionData.question}</p>`;
+
+        questionData.options.forEach((option, index) => {
+            const label = document.createElement('label');
+            label.innerHTML = `
+                <input type="radio" name="question${currentQuestionIndex}" value="${option}" required>
+                ${option}
+            `;
+            label.querySelector('input').addEventListener('change', () => {
+                document.getElementById('selectionSound').play(); // Play selection sound
+            });
+            questionElement.appendChild(label);
+        });
+
+        quizContainer.appendChild(questionElement);
+        document.getElementById('nextButton').style.display = 'block'; // Ensure Next button is visible
+    }
+
+    function nextQuestion() {
+        const selectedOption = document.querySelector(`input[name="question${currentQuestionIndex}"]:checked`);
+        if (!selectedOption) {
+            alert('Sila pilih satu pilihan.');
+            return;
+        }
+
+        userResponses.push(selectedOption.value);
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            showQuestion();
+            updateProgressBar();
+            document.getElementById('nextSound').play();
+            document.getElementById('nextButtonSound').play(); // Play sound on next button
+        } else {
+            showResults();
+            document.getElementById('completeSound').play();
+        }
+    }
+
+    function updateProgressBar() {
+        const progressBar = document.getElementById('progressBar');
+        progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+    }
+
+ function showResults() {
+    const quizContainer = document.getElementById('quiz');
+    quizContainer.innerHTML = '';
+
+    const resultsElement = document.createElement('div');
+    resultsElement.classList.add('result');
+    resultsElement.innerHTML = '<h2>Keputusan Kuiz Anda:</h2>';
+
+    const matchedHollandCodes = new Set();
+
+    userResponses.forEach(response => {
+        if (hollandMapping[response]) {
+            hollandMapping[response].forEach(code => matchedHollandCodes.add(code));
+        }
+    });
+
+    const recommendedJobs = Object.keys(jobDetails).filter(job => {
+        return matchedHollandCodes.has(jobDetails[job].hollandCode[0]);
+    });
+
+    if (recommendedJobs.length === 0) {
+        recommendedJobs.push(Object.keys(jobDetails)[0]);
+    }
+
+    recommendedJobs.forEach(job => {
+        const jobCard = document.createElement('div');
+        jobCard.classList.add('job-card');
+        jobCard.innerHTML = `
+            <div class="job-title">${job}</div>
+            <div class="job-details">
+                <strong>Universiti:</strong> ${jobDetails[job].universities.join(', ')}<br>
+                <strong>Gaji:</strong> ${jobDetails[job].salary}<br>
+                <strong>Kelayakan:</strong> ${jobDetails[job].qualifications}<br>
+                <strong>Holland Code:</strong> ${jobDetails[job].hollandCode.join(', ')}
+            </div>
+        `;
+        resultsElement.appendChild(jobCard);
+    });
+
+    // Add Holland Code explanation
+    const explanationElement = document.createElement('div');
+    explanationElement.innerHTML = `
+        <h3>Penjelasan Mengenai Holland Code:</h3>
+        <p>
+            Holland Code, juga dikenali sebagai RIASEC, adalah teori pilihan kerjaya yang dikembangkan oleh psikolog John Holland. 
+            Ia mengkategorikan pekerjaan kepada enam jenis utama berdasarkan ciri keperibadian dan minat:
+        </p>
+        <ul>
+            <li><strong>Realistik (R):</strong> Individu yang praktikal dan menikmati kerja dengan alat, mesin, atau haiwan.</li>
+            <li><strong>Informatif (I):</strong> Orang yang analitis dan suka bekerja dengan idea dan data.</li>
+            <li><strong>Seni (A):</strong> Individu kreatif yang lebih suka persekitaran yang tidak terstruktur.</li>
+            <li><strong>Sosial (S):</strong> Orang yang penyayang dan menikmati membantu orang lain.</li>
+            <li><strong>Usahawan (E):</strong> Individu yang memujuk dan biasanya menikmati peranan kepimpinan.</li>
+            <li><strong>Konvensional (C):</strong> Individu yang teratur dan detail-oriented, lebih suka tugas dan persekitaran yang terstruktur.</li>
+        </ul>
+        <p>
+            Dengan mempersembahkan Holland Code dalam keputusan, anda dapat memahami jalan kerjaya yang sesuai dengan minat dan kekuatan anda, 
+            yang dapat meningkatkan kepuasan kerja dan pencapaian kerjaya anda.
+        </p>
+    `;
+    
+    resultsElement.appendChild(explanationElement);
+    quizContainer.appendChild(resultsElement);
+    document.getElementById('resetButton').style.display = 'block'; // Show reset button
+    document.getElementById('nextButton').style.display = 'none'; // Hide next button
+}
+
+
+
+    function resetQuiz() {
+        currentQuestionIndex = 0;
+        userResponses.length = 0;
+        document.getElementById('resetButton').style.display = 'none';
+        showQuestion();
+        updateProgressBar();
+        document.getElementById('nextButton').style.display = 'block'; // Ensure Next button is visible
+        document.getElementById('resetSound').play();
+    }
+
+    document.getElementById('nextButton').addEventListener('click', nextQuestion);
+    document.getElementById('resetButton').addEventListener('click', resetQuiz);
+
+    showQuestion();
+</script>
+<footer>
+    <p>&copy; 2024 Kuiz Pekerjaan Interaktif. All Rights Reserved.</p>
+</footer>
+</body>
+</html>
